@@ -51,10 +51,4 @@ export default defineManifest({
   side_panel: {
     default_path: 'src/sidepanel/index.html',
   },
-  web_accessible_resources: [
-    {
-      resources: ['public/*'],
-      matches: ['<all_urls>'],
-    },
-  ],
 })
