@@ -19,23 +19,31 @@ A Chrome extension that blocks ads and trackers for a cleaner, faster browsing e
 | Vite 7 + CRXJS | Build tooling and Chrome extension bundling |
 | oxlint | Fast Rust-based linting |
 | oxfmt | Formatting |
-| Husky | Pre-commit hooks (runs `fmt:check` + `lint`) |
+| Husky | Pre-commit hooks (runs `fmt:check`, `lint`, and `test`) |
+| bun:test | Built-in Bun test runner |
+| happy-dom | DOM environment for unit tests |
+| GitHub Actions | CI on PRs; automated release on version tags |
 
 ## Project Structure
 
 ```
 src/
-├── background/       # Service worker — state management, install handler
+├── background/          # Service worker — state management, install handler, message API
 ├── content/
-│   ├── main.tsx      # Ad CSS injection (runs on all sites)
+│   ├── main.tsx         # Ad CSS injection (runs on all sites)
 │   └── kun-injector.ts  # "Click me" button injector (kun.uz only)
-├── popup/            # Extension toolbar popup
-├── sidepanel/        # Chrome side panel UI
-├── welcome/          # Welcome page (shown on first install, also options page)
-└── assets/
+├── popup/               # Extension toolbar popup
+├── sidepanel/           # Chrome side panel UI
+├── welcome/             # Welcome page (shown on first install, also options page)
+├── assets/
+└── tests/               # Bun unit tests for background, content, and kun-injector
 rules/
-└── ad_rules.json     # declarativeNetRequest blocking rules (50 rules)
-manifest.config.ts    # Chrome extension manifest v3
+└── ad_rules.json        # declarativeNetRequest blocking rules (50 rules)
+.github/
+└── workflows/
+    ├── ci.yml           # CI — format, lint, type-check, test, build
+    └── release.yml      # Release — build + attach zip to GitHub Release
+manifest.config.ts       # Chrome extension manifest v3
 ```
 
 ## Getting Started
@@ -70,6 +78,39 @@ The welcome page opens automatically on first install. To view it again, go to `
 | `bun run lint:fix` | Auto-fix lint issues |
 | `bun run fmt` | Format `src/` with oxfmt |
 | `bun run fmt:check` | Check formatting without writing (used by pre-commit hook) |
+| `bun run test` | Run all unit tests with bun:test |
+
+## Testing
+
+Unit tests live in `src/tests/` and run with Bun's built-in test runner (no Vitest or Jest needed).
+
+```bash
+bun run test
+```
+
+| Test file | What it covers |
+|---|---|
+| `background.test.ts` | Install handler, storage init, GET_STATS, TOGGLE_ENABLED, RESET_STATS |
+| `content.test.ts` | CSS injection, style removal, idempotency, ENABLED_CHANGED message |
+| `kun-injector.test.ts` | Button injection, sibling placement, double-injection guard, MutationObserver |
+
+Tests use a manual `chrome` API mock — no browser required. The pre-commit hook runs all tests before every commit.
+
+## CI/CD
+
+| Workflow | Trigger | Steps |
+|---|---|---|
+| **CI** | Pull request or push to `main` | fmt:check → lint → type-check → test → build |
+| **Release** | Push a `v*.*.*` tag | test → build → create GitHub Release with extension zip |
+
+To release a new version:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+Tags containing a hyphen (e.g. `v1.0.0-beta`) are automatically marked as pre-releases.
 
 ## Permissions
 
