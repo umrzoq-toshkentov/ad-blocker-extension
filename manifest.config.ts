@@ -38,6 +38,11 @@ export default defineManifest({
       matches: ['https://*/*', 'http://*/*'],
       run_at: 'document_start',
     },
+    {
+      js: ['src/content/kun-injector.ts'],
+      matches: ['https://kun.uz/*', 'http://kun.uz/*'],
+      run_at: 'document_idle',
+    },
   ],
   declarative_net_request: {
     rule_resources: [
@@ -51,4 +56,5 @@ export default defineManifest({
   side_panel: {
     default_path: 'src/sidepanel/index.html',
   },
+  options_page: 'src/welcome/index.html',
 })

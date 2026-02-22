@@ -1,6 +1,6 @@
 // Background service worker — manages state, listens for blocked requests
 
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   // Initialize storage on first install
   const existing = await chrome.storage.local.get(["enabled", "totalBlocked", "sessionBlocked"]);
   if (existing.enabled === undefined) {
@@ -13,6 +13,11 @@ chrome.runtime.onInstalled.addListener(async () => {
   } else {
     // Reset session count on reinstall/update
     await chrome.storage.local.set({ sessionBlocked: 0 });
+  }
+
+  // Open welcome page only on first install
+  if (details.reason === chrome.runtime.OnInstalledReason.INSTALL) {
+    chrome.tabs.create({ url: chrome.runtime.getURL("src/welcome/index.html") });
   }
 });
 
